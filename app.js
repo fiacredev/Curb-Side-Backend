@@ -15,12 +15,15 @@ await connectDB();
 app.use(cors());
 app.use(express.json());
 
+// api end points about drivers and deleiveries
 app.use('/drivers', driverRoutes);
 app.use('/deliveries', deliveryRoutes);
 
+// api home page endpoint message
 app.get('/', (_, res) => res.send('API running'));
 
 const PORT = 3000;
+
 
 app.listen(PORT, () =>
   console.log(`🚀 Server running on port ${PORT}`)
