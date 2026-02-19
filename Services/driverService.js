@@ -3,26 +3,28 @@ import Driver from "../models/Driver.js";
 import Delivery from "../models/Delivery.js";
 
 export const updateLocation = async (driverId, lat, lng) => {
-   const driver = await Driver.findById(driverId);
-  if (!driver) throw new Error("Driver not found");
-  // Check if driver is available or has a delivery in progress being done
+console.log("received driver id is: ", driverId);
+const driver = await Driver.findById(driverId);
+if (!driver) throw new Error("Driver not found");
+  // dela with printing all drivers
+  const drivers = await Driver.find();
+  console.log("drivers received: ", drivers);
   const activeDelivery = await Delivery.findOne({
     driver: driver._id,
     status: "in_progress"
   });
 
   if (driver.isAvailable || activeDelivery) {
-    // Update driver current location to be stored effecvtively in database
     driver.currentLocation = { lat, lng };
     await driver.save();
-    // Store location history of every drivr
     await Location.create({ driver: driver._id, lat, lng });
     return driver;
   } else {
-    // Skip tracking automatically when all condition aboev are false
+    console.log("Tracking skipped");
     return driver;
   }
 };
+
 
 export const toggleAvailability = async (driverId) => {
   const driver = await Driver.findById(driverId);
