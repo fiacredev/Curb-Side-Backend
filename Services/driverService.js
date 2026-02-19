@@ -31,3 +31,22 @@ export const toggleAvailability = async (driverId) => {
   driver.isAvailable = !driver.isAvailable;
   return driver.save();
 };
+
+export const updateLocationRealtime = async (driverId, lat, lng) => {
+  // update drivr curent position
+  const driver = await Driver.findByIdAndUpdate(
+    driverId,
+    { currentLocation: { lat, lng } },
+    { new: true },
+    // { returnDocument: 'after' }
+  );
+
+  // save history snapshot
+  await Location.create({
+    driver: driverId,
+    lat,
+    lng,
+  });
+
+  return driver;
+};
