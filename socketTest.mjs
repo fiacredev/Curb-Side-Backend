@@ -8,7 +8,7 @@ socket.on('connect', () => {
   socket.emit('driver:location', {
     driverId: '6995a1441287438bcc1b863d',
     lat: 12.34,
-    lng: 56.78,
+    lng: 56.77,
   });
 });
 
