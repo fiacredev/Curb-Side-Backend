@@ -1,4 +1,4 @@
-import * as driverService from "../Services/driverService.js"
+import * as driverService from "../services/driverService.js"
 import Location from "../models/Location.js";
 import mongoose from "mongoose";
 

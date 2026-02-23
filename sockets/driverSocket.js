@@ -1,4 +1,4 @@
-import * as driverService from '../Services/driverService.js'
+import * as driverService from '../services/driverService.js'
 
 export const registerDriverSockets = (io) => {
   io.on('connection', (socket) => {
