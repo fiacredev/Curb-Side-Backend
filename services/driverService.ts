@@ -44,29 +44,22 @@ export const toggleAvailability = async (driverId: string): Promise<IDriver>  =>
    return driver;
 };
 
-export const updateLocationRealtime = async (driverId: string,  latitude: number, longitude: number ): Promise<IDriver | null> => {
-
-  // update driver's current position using GeoJSON
-
-    const driver: IDriver | null = await Driver.findByIdAndUpdate(
+export const updateLocationRealtime = async (driverId: string, latitude: number, longitude: number): Promise<IDriver | null> => {
+  const driver: IDriver | null = await Driver.findByIdAndUpdate(
     driverId,
-    {
-      location: {
-        type: "Point",
-        coordinates: [longitude, latitude], // GeoJSON format: [lng, lat]
-      },
-    },
+    { location: { type: "Point", coordinates: [longitude, latitude] } },
     { new: true }
   );
 
-  // save history snapshot (also in GeoJSON for consistency) and data qulity for future use 
-  await Location.create({
-    driver: new mongoose.Types.ObjectId(driverId),
-    location: {
-      type: "Point",
-      coordinates: [longitude, latitude],
-    },
-  } as ILocation);
+  try {
+    await Location.create({
+      driver: new mongoose.Types.ObjectId(driverId),
+      location: { type: "Point", coordinates: [longitude, latitude] },
+    });
+    console.log("Location document saved");
+  } catch (err) {
+    console.error("Failed to save Location document:", err);
+  }
 
   return driver;
 };

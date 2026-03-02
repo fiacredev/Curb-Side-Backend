@@ -28,6 +28,8 @@ export const registerDriverSockets = (io: any) => {
 
         io.emit('driver:update', { driverId, lat, lng });
         console.log(`location updated for driver ${driverId}`);
+
+
       } catch (err) {
         console.error(`error processing driver location for ${driverId}:`, err);
       }

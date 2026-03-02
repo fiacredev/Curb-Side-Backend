@@ -16,7 +16,7 @@ export const updateLocation = async (driverId, lat, lng) => {
         status: "in_progress"
     });
     if (driver.isAvailable || activeDelivery) {
-        driver.currentLocation = { lat, lng };
+        driver.location = { type: "Point", coordinates: [lng, lat] };
         await driver.save();
         await Location.create({ driver: driver._id,
             location: {
@@ -40,20 +40,16 @@ export const toggleAvailability = async (driverId) => {
     return driver;
 };
 export const updateLocationRealtime = async (driverId, latitude, longitude) => {
-    // update driver's current position using GeoJSON
-    const driver = await Driver.findByIdAndUpdate(driverId, {
-        location: {
-            type: "Point",
-            coordinates: [longitude, latitude], // GeoJSON format: [lng, lat]
-        },
-    }, { new: true });
-    // save history snapshot (also in GeoJSON for consistency) and data qulity for future use 
-    await Location.create({
-        driver: new mongoose.Types.ObjectId(driverId),
-        location: {
-            type: "Point",
-            coordinates: [longitude, latitude],
-        },
-    });
+    const driver = await Driver.findByIdAndUpdate(driverId, { location: { type: "Point", coordinates: [longitude, latitude] } }, { new: true });
+    try {
+        await Location.create({
+            driver: new mongoose.Types.ObjectId(driverId),
+            location: { type: "Point", coordinates: [longitude, latitude] },
+        });
+        console.log("Location document saved");
+    }
+    catch (err) {
+        console.error("Failed to save Location document:", err);
+    }
     return driver;
 };
