@@ -8,46 +8,33 @@ interface DriverLocationPayload {
 
 export const registerDriverSockets = (io: any) => {
   io.on('connection', (socket: any) => {
-    console.log('Client connected:', socket.id);
+    console.log('client connected:', socket.id);
 
-    socket.on(
-      'driver:location',
-      async (payload: DriverLocationPayload) => {
-        try {
-          const { driverId, lat, lng } = payload;
+    socket.on('driver:location', async (payload: DriverLocationPayload) => {
+      const { driverId, lat, lng } = payload;
 
-          // Basic validation
-          if (!driverId || lat == null || lng == null) {
-            console.warn('Invalid driver location payload:', payload);
-            return;
-          }
-
-          await driverService.updateLocationRealtime(
-            driverId,
-            lat,
-            lng
-          );
-
-          // Broadcast updated location
-          io.emit('driver:update', {
-            driverId,
-            lat,
-            lng,
-          });
-
-          console.log('Location updated:', driverId);
-        } catch (err: unknown) {
-          if (err instanceof Error) {
-            console.error('Socket error:', err.message);
-          } else {
-            console.error('Socket error:', err);
-          }
-        }
+      if (!driverId || lat == null || lng == null) {
+        console.warn('Invalid driver location payload:', payload);
+        return;
       }
-    );
+
+      try {
+        const driver = await driverService.updateLocationRealtime(driverId, lat, lng);
+
+        if (!driver) {
+          console.error(`location NOT updated for driver ${driverId}`);
+          return;
+        }
+
+        io.emit('driver:update', { driverId, lat, lng });
+        console.log(`location updated for driver ${driverId}`);
+      } catch (err) {
+        console.error(`error processing driver location for ${driverId}:`, err);
+      }
+    });
 
     socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id);
+      console.log('client disconnected:', socket.id);
     });
   });
 };
