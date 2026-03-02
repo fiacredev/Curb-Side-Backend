@@ -20,7 +20,7 @@ if (!driver) throw new Error("Driver not found");
   });
 
   if (driver.isAvailable || activeDelivery) {
-    driver.currentLocation = { lat, lng };
+     driver.location = { type: "Point",coordinates: [lng, lat] };
     await driver.save();
     await Location.create({ driver: driver._id,
       location: {
