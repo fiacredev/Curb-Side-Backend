@@ -39,6 +39,7 @@ export const fetchCurrentLocation = async (req: Request, res: Response): Promise
   }
 };
 
+
 export const getNearbyDrivers = async (req: Request, res: Response): Promise<void> => {
   try {
     const { lat, lng } = req.query;
