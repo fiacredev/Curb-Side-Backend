@@ -4,9 +4,28 @@ import Driver from "../models/Driver.js";
 
 dotenv.config();
 
+const BASE_LAT = -1.9305352087538072;
+const BASE_LNG = 30.15298435188576;
+
+// Generate random nearby location (~1–2km radius)
+const generateNearbyLocation = () => {
+  const latOffset = (Math.random() - 0.5) * 0.02;
+  const lngOffset = (Math.random() - 0.5) * 0.02;
+
+  const lat = BASE_LAT + latOffset;
+  const lng = BASE_LNG + lngOffset;
+
+  return {
+    currentLocation: { lat, lng },
+    location: {
+      type: "Point" as const,
+      coordinates: [lng, lat], // [longitude, latitude]
+    },
+  };
+};
+
 const seedDrivers = async (): Promise<void> => {
   try {
-
     const mongoUri = process.env.MONGO_URI;
 
     if (!mongoUri) {
@@ -19,60 +38,21 @@ const seedDrivers = async (): Promise<void> => {
     await Driver.deleteMany({});
     console.log("🗑️ Old drivers removed");
 
-    const drivers = [
-      {
-        name: "Emily Johnson",
-        email: "emily@driver.com",
+    const drivers = Array.from({ length: 10 }).map((_, i) => {
+      const locationData = generateNearbyLocation();
+
+      return {
+        name: `Driver ${i + 1}`,
+        email: `driver${i + 1}@test.com`,
         isAvailable: true,
-        location: {
-          type: "Point",
-          coordinates: [-118.2437, 34.0522],
-        },
-      },
-      {
-        name: "Michael Smith",
-        email: "michael@driver.com",
-        isAvailable: true,
-        location: {
-          type: "Point",
-          coordinates: [-118.25, 34.05],
-        },
-      },
-      {
-        name: "Sophia Williams",
-        email: "sophia@driver.com",
-        isAvailable: true,
-        location: {
-          type: "Point",
-          coordinates: [-118.24, 34.048],
-        },
-      },
-      {
-        name: "Daniel Brown",
-        email: "daniel@driver.com",
-        isAvailable: true,
-        location: {
-          type: "Point",
-          coordinates: [-118.255, 34.0535],
-        },
-      },
-      {
-        name: "Olivia Davis",
-        email: "olivia@driver.com",
-        isAvailable: true,
-        location: {
-          type: "Point",
-          coordinates: [-118.238, 34.055],
-        },
-      },
-    ];
+        ...locationData,
+      };
+    });
 
     await Driver.insertMany(drivers);
 
-    console.log("5 drivers seeded successfully");
-
+    console.log("🚗 10 drivers seeded successfully near given coordinates");
   } catch (error: unknown) {
-
     if (error instanceof Error) {
       console.error("Seeding error:", error.message);
     } else {
