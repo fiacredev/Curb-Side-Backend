@@ -5,8 +5,10 @@ export const createDelivery = async (req, res) => {
         res.json(delivery);
     }
     catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error" });
+        console.error("Failed to create delivery:", err);
+        res.status(400).json({
+            message: err.message || "server error",
+        });
     }
 };
 // update delivery status
