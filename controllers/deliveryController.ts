@@ -15,14 +15,21 @@ interface CreateDeliveryDTO {
 }
 
 export const createDelivery = async (req: Request<{}, {}, CreateDeliveryDTO>, res: Response): Promise<void> => {
-   try {
+
+  
+  try {
+
     const delivery = await deliveryService.createDelivery(req.body);
     // dealw with sending email after delivery created
-
+    
     const customerRecord = await Customer.findById(req.body.customer);
     if (!customerRecord) throw new Error("customer not found");
+    
+    let emailSent = true;
+    let emailError: string | null = null;
 
       // sending email efficiently
+
       try {
       await deliveryService.sendDeliveryCreatedEmail(
         req.body.pickup,
@@ -30,11 +37,13 @@ export const createDelivery = async (req: Request<{}, {}, CreateDeliveryDTO>, re
         customerRecord.email
       );
       console.log("Email sent successfully to:", customerRecord.email);
-    } catch (emailErr) {
+    } catch (emailErr: any) {
       console.error("Email failed:", emailErr);
+        let emailSent = false;
+        let emailError: string | null = null;
     }
 
-    res.status(201).json(delivery);
+    res.status(201).json({delivery,emailSent,emailError});
   } catch (err: any) { 
     console.error("failed to create delivery:", err);
     res.status(400).json({

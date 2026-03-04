@@ -7,6 +7,8 @@ export const createDelivery = async (req, res) => {
         const customerRecord = await Customer.findById(req.body.customer);
         if (!customerRecord)
             throw new Error("customer not found");
+        let emailSent = true;
+        let emailError = null;
         // sending email efficiently
         try {
             await deliveryService.sendDeliveryCreatedEmail(req.body.pickup, req.body.dropoff, customerRecord.email);
@@ -14,8 +16,10 @@ export const createDelivery = async (req, res) => {
         }
         catch (emailErr) {
             console.error("Email failed:", emailErr);
+            let emailSent = false;
+            let emailError = null;
         }
-        res.status(201).json(delivery);
+        res.status(201).json({ delivery, emailSent, emailError });
     }
     catch (err) {
         console.error("failed to create delivery:", err);
