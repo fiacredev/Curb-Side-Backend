@@ -3,7 +3,7 @@ export const createDelivery = async (req, res) => {
     try {
         const delivery = await deliveryService.createDelivery(req.body);
         // dealw with sending email after delivery created
-        await deliveryService.sendDeliveryCreatedEmail(req.body.pickup, req.body.dropoff, req.body.customerEmail)
+        deliveryService.sendDeliveryCreatedEmail(req.body.pickup, req.body.dropoff, req.body.customerEmail)
             .catch(err => console.error("Email failed (ignored):", err));
         res.status(201).json(delivery);
     }
