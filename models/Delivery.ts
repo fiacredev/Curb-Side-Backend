@@ -3,6 +3,8 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 export interface IDelivery extends Document {
   customer: mongoose.Types.ObjectId;
   driver: mongoose.Types.ObjectId;
+  customerEmail:string,
+  driverEmail:string,
   pickup: {
     lat: number;
     lng: number;
@@ -21,6 +23,8 @@ const deliverySchema: Schema<IDelivery> = new Schema(
   {
     customer: { type: Schema.Types.ObjectId, ref: "Customer", required: false, default:null },
     driver: { type: Schema.Types.ObjectId, ref: "Driver", required: false  , default:null },
+    customerEmail:{type:String, default:null},
+    driverEmail:{type:String, default:null},
     pickup: {
       lat: { type: Number, required: true },
       lng: { type: Number, required: true },

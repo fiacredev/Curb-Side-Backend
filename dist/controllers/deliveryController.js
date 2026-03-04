@@ -2,10 +2,13 @@ import * as deliveryService from "../services/deliveryService.js";
 export const createDelivery = async (req, res) => {
     try {
         const delivery = await deliveryService.createDelivery(req.body);
-        res.json(delivery);
+        // dealw with sending email after delivery created
+        await deliveryService.sendDeliveryCreatedEmail(req.body.pickup, req.body.dropoff, req.body.customerEmail)
+            .catch(err => console.error("Email failed (ignored):", err));
+        res.status(201).json(delivery);
     }
     catch (err) {
-        console.error("Failed to create delivery:", err);
+        console.error("failed to create delivery:", err);
         res.status(400).json({
             message: err.message || "server error",
         });
