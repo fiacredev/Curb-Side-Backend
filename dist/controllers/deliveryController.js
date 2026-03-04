@@ -1,10 +1,20 @@
 import * as deliveryService from "../services/deliveryService.js";
+import Customer from "../models/Customer.js";
 export const createDelivery = async (req, res) => {
     try {
         const delivery = await deliveryService.createDelivery(req.body);
         // dealw with sending email after delivery created
-        deliveryService.sendDeliveryCreatedEmail(req.body.pickup, req.body.dropoff, req.body.customerEmail)
-            .catch(err => console.error("Email failed (ignored):", err));
+        const customerRecord = await Customer.findById(req.body.customer);
+        if (!customerRecord)
+            throw new Error("customer not found");
+        // sending email efficiently
+        try {
+            await deliveryService.sendDeliveryCreatedEmail(req.body.pickup, req.body.dropoff, customerRecord.email);
+            console.log("Email sent successfully to:", customerRecord.email);
+        }
+        catch (emailErr) {
+            console.error("Email failed:", emailErr);
+        }
         res.status(201).json(delivery);
     }
     catch (err) {
