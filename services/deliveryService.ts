@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 
 interface CreateDeliveryDTO {
   customer: mongoose.Types.ObjectId | string;
+  customerEmail:string,
+  driverEmail:string,
   driver: mongoose.Types.ObjectId | string;
   pickup: { lat: number; lng: number };
   dropoff: { lat: number; lng: number };

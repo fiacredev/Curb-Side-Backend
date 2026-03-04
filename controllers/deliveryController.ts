@@ -9,6 +9,7 @@ interface CreateDeliveryDTO {
   pickup: { lat: number; lng: number };
   dropoff: { lat: number; lng: number };
   customerEmail:string,
+  driverEmail:string,
   status?: 'pending' | 'accepted' | 'in_progress' | 'completed';
 }
 
