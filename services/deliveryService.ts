@@ -39,24 +39,7 @@ export const getCustomerDeliveries = async (customerId: string): Promise<IDelive
     .lean();
 };
 
-export const getNearbyDeliveries = async (
-  lat: number,
-  lng: number,
-  radius: number = 5000 // meters (5km)
-) => {
-  return await Delivery.find({
-    status: "pending",
-    pickup: {
-      $near: {
-        $geometry: {
-          type: "Point",
-          coordinates: [lng, lat],
-        },
-        $maxDistance: radius,
-      },
-    },
-  });
-};
+
 
 export const sendDeliveryCreatedEmail = async (
     pickup: any,
@@ -69,7 +52,7 @@ export const sendDeliveryCreatedEmail = async (
     to: customerEmail,
     subject: "Delivery Created",
     html: `
-      <h2>Delivery Confirmation</h2>
+    <h2>Delivery Confirmation</h2>
       <p>Pickup: ${pickup.lat}, ${pickup.lng}</p>
       <p>Dropoff: ${dropoff.lat}, ${dropoff.lng}</p>
       <h3>Thank You for Your Trust</h3>
@@ -82,7 +65,7 @@ export const sendDeliveryCreatedEmail = async (
       If there’s anything more you need or if we can assist you further, 
       please don’t hesitate to reach out. We look forward to working with you again soon!
       </p>
-    `,
+      `,
   });
 };
 
@@ -92,3 +75,58 @@ export const updateStatus = async (
 ): Promise<IDelivery | null> => {
   return await Delivery.findByIdAndUpdate(id, { status }, { new: true });
 };
+
+
+
+  // Ai complex logic without using GEOJSONn in mongoDb to get nearest deliveries
+  
+  export const getNearbyDeliveries = async (
+    lat: number,
+    lng: number,
+    radiusMeters: number = 5000 // default 5km
+  ) => {
+    const earthRadius = 6371000; // in meters
+  
+    return await Delivery.aggregate([
+      {
+        $addFields: {
+          distance: {
+            $let: {
+              vars: {
+                lat1: { $toRadians: "$pickup.lat" },
+                lng1: { $toRadians: "$pickup.lng" },
+                lat2: { $toRadians: lat },
+                lng2: { $toRadians: lng },
+              },
+              in: {
+                $multiply: [
+                  earthRadius,
+                  {
+                    $acos: {
+                      $min: [
+                        1,
+                        {
+                          $add: [
+                            { $multiply: [{ $sin: "$$lat1" }, { $sin: "$$lat2" }] },
+                            {
+                              $multiply: [
+                                { $cos: "$$lat1" },
+                                { $cos: "$$lat2" },
+                                { $cos: { $subtract: ["$$lng2", "$$lng1"] } },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { $match: { distance: { $lte: radiusMeters }, status: "pending" } },
+      { $sort: { distance: 1 } },
+    ]);
+  };
