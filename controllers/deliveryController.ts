@@ -31,7 +31,7 @@ export const createDelivery = async (req: Request<{}, {}, CreateDeliveryDTO>, re
       // sending email efficiently
 
       try {
-      await deliveryService.sendDeliveryCreatedEmail(
+       deliveryService.sendDeliveryCreatedEmail(
         req.body.pickup,
         req.body.dropoff,
         customerRecord.email

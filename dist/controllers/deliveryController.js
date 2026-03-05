@@ -11,7 +11,7 @@ export const createDelivery = async (req, res) => {
         let emailError = null;
         // sending email efficiently
         try {
-            await deliveryService.sendDeliveryCreatedEmail(req.body.pickup, req.body.dropoff, customerRecord.email);
+            deliveryService.sendDeliveryCreatedEmail(req.body.pickup, req.body.dropoff, customerRecord.email);
             console.log("Email sent successfully to:", customerRecord.email);
         }
         catch (emailErr) {
