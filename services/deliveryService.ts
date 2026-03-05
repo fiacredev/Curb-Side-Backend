@@ -80,73 +80,44 @@ export const updateStatus = async (
 
   // Ai complex logic without using GEOJSONn in mongoDb to get nearest deliveries
   
-  export const getNearbyDeliveries = async (
+export const getNearbyDeliveries = async (
   lat: number,
   lng: number,
-  radiusMeters: number = 5000 // default 5 km
+  radiusMeters: number = 5000
 ) => {
-  const earthRadius = 6371000; // meters
+  try {
+    // fetch all pending deliveries as plain objects
+    const deliveries = await Delivery.find({ status: "pending" }).lean();
 
-  return await Delivery.aggregate([
-    // Filter out documents without proper pickup coordinates first
-    {
-      $match: {
-        "pickup.lat": { $exists: true, $ne: null },
-        "pickup.lng": { $exists: true, $ne: null },
-        status: "pending",
-      },
-    },
+    const earthRadius = 6371000;
 
-    // Calculate distance using Haversine formula
-    {
-      $addFields: {
-        distance: {
-          $let: {
-            vars: {
-              lat1: { $toRadians: "$pickup.lat" },
-              lng1: { $toRadians: "$pickup.lng" },
-              lat2: { $toRadians: lat },
-              lng2: { $toRadians: lng },
-            },
-            in: {
-              $multiply: [
-                earthRadius,
-                {
-                  $acos: {
-                    $min: [
-                      1, // ensures domain error doesn't happen
-                      {
-                        $add: [
-                          { $multiply: [{ $sin: "$$lat1" }, { $sin: "$$lat2" }] },
-                          {
-                            $multiply: [
-                              { $cos: "$$lat1" },
-                              { $cos: "$$lat2" },
-                              { $cos: { $subtract: ["$$lng2", "$$lng1"] } },
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        },
-      },
-    },
+    const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+      const toRad = (v: number) => (v * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLng = toRad(lng2 - lng1);
 
-    // Only return deliveries within radius
-    {
-      $match: {
-        distance: { $lte: radiusMeters },
-      },
-    },
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return earthRadius * c;
+    };
 
-    // Sort nearest first
-    {
-      $sort: { distance: 1 },
-    },
-  ]);
+    // map + filter + sort
+    const nearby = deliveries
+      .map((d: any) => {
+        if (d.pickup && d.pickup.lat != null && d.pickup.lng != null) {
+          const distance = haversineDistance(lat, lng, d.pickup.lat, d.pickup.lng);
+          return { ...d, distance };
+        }
+        return null;
+      })
+      .filter((d): d is any => d !== null && d.distance <= radiusMeters) // cast as any
+      .sort((a, b) => a.distance - b.distance);
+
+    return nearby;
+  } catch (err: any) {
+    console.error("getNearbyDeliveries failed:", err);
+    throw new Error(err.message || "Failed to fetch nearby deliveries");
+  }
 };

@@ -65,21 +65,27 @@ export const getCustomerDeliveries = async (req: Request, res: Response): Promis
   }
 };
 
-export const getNearbyDeliveries = async (req: Request, res: Response) => {
+
+export const getNearbyDeliveriesController = async (req: Request, res: Response) => {
   try {
-    const { lat, lng } = req.query;
+    const { lat, lng, radius } = req.query;
+
     if (!lat || !lng) {
       return res.status(400).json({ message: "lat and lng required" });
     }
+
+    const radiusMeters = radius ? Number(radius) : 5000;
+
     const deliveries = await deliveryService.getNearbyDeliveries(
       Number(lat),
-      Number(lng)
+      Number(lng),
+      radiusMeters
     );
 
     res.json(deliveries);
-  } catch (err) {
-    console.error("failed to fetch nearby deliveries:", err);
-    res.status(500).json({ message: "Server error" });
+  } catch (err: any) {
+    console.error("getNearbyDeliveriesController failed:", err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 
