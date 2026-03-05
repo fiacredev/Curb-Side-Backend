@@ -79,17 +79,16 @@ export const updateStatus = async (
 
 
   // Ai complex logic without using GEOJSONn in mongoDb to get nearest deliveries
-  
 export const getNearbyDeliveries = async (
   lat: number,
   lng: number,
   radiusMeters: number = 5000
 ) => {
   try {
-    // fetch all pending deliveries as plain objects
+    // fetch all pending deliveries
     const deliveries = await Delivery.find({ status: "pending" }).lean();
 
-    const earthRadius = 6371000;
+    const earthRadius = 6371000; // meters
 
     const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
       const toRad = (v: number) => (v * Math.PI) / 180;
@@ -100,10 +99,11 @@ export const getNearbyDeliveries = async (
         Math.sin(dLat / 2) ** 2 +
         Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
       return earthRadius * c;
     };
 
-    // map + filter + sort
+    // map deliveries with distance
     const nearby = deliveries
       .map((d: any) => {
         if (d.pickup && d.pickup.lat != null && d.pickup.lng != null) {
@@ -112,12 +112,12 @@ export const getNearbyDeliveries = async (
         }
         return null;
       })
-      .filter((d): d is any => d !== null && d.distance <= radiusMeters) // cast as any
+      .filter((d): d is any => d !== null && d.distance <= radiusMeters)
       .sort((a, b) => a.distance - b.distance);
 
     return nearby;
   } catch (err: any) {
     console.error("getNearbyDeliveries failed:", err);
-    throw new Error(err.message || "Failed to fetch nearby deliveries");
+    throw err;
   }
 };
