@@ -38,6 +38,8 @@ app.get('/', (_, res) => res.send('API running'));
 const PORT = process.env.PORT || 3000;
 
 
-server.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`, mongoose.connection.name)
-);
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`, mongoose.connection.name);
+  console.log("EMAIL_USER:", process.env.EMAIL_USER);
+  console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
+});
