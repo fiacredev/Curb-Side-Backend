@@ -41,6 +41,20 @@ export const getCustomerDeliveries = async (req, res) => {
         res.status(400).json({ message: err.message || "server error" });
     }
 };
+export const getNearbyDeliveries = async (req, res) => {
+    try {
+        const { lat, lng } = req.query;
+        if (!lat || !lng) {
+            return res.status(400).json({ message: "lat and lng required" });
+        }
+        const deliveries = await deliveryService.getNearbyDeliveries(Number(lat), Number(lng));
+        res.json(deliveries);
+    }
+    catch (err) {
+        console.error("failed to fetch nearby deliveries:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
 // update delivery status
 export const updateStatus = async (req, res) => {
     try {

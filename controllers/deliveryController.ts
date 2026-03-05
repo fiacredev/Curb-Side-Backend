@@ -65,6 +65,24 @@ export const getCustomerDeliveries = async (req: Request, res: Response): Promis
   }
 };
 
+export const getNearbyDeliveries = async (req: Request, res: Response) => {
+  try {
+    const { lat, lng } = req.query;
+    if (!lat || !lng) {
+      return res.status(400).json({ message: "lat and lng required" });
+    }
+    const deliveries = await deliveryService.getNearbyDeliveries(
+      Number(lat),
+      Number(lng)
+    );
+
+    res.json(deliveries);
+  } catch (err) {
+    console.error("failed to fetch nearby deliveries:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // update delivery status
 export const updateStatus = async (
   req: Request<{ id: string }, {}, { status: 'pending' | 'accepted' | 'in_progress' | 'completed' }>,

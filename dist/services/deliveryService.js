@@ -2,7 +2,18 @@ import Delivery from '../models/Delivery.js';
 import transporter from '../utils/mailer.js';
 import mongoose from 'mongoose';
 export const createDelivery = async (data) => {
-    return await Delivery.create(data);
+    const delivery = await Delivery.create({
+        ...data,
+        pickup: {
+            lat: data.pickup.lat,
+            lng: data.pickup.lng,
+        },
+        dropoff: {
+            lat: data.dropoff.lat,
+            lng: data.dropoff.lng,
+        },
+    });
+    return delivery;
 };
 export const getCustomerDeliveries = async (customerId) => {
     if (!mongoose.Types.ObjectId.isValid(customerId)) {
@@ -12,6 +23,21 @@ export const getCustomerDeliveries = async (customerId) => {
     return await Delivery.find({ customer: customerId })
         .sort({ createdAt: -1 })
         .lean();
+};
+export const getNearbyDeliveries = async (lat, lng, radius = 5000 // meters (5km)
+) => {
+    return await Delivery.find({
+        status: "pending",
+        pickup: {
+            $near: {
+                $geometry: {
+                    type: "Point",
+                    coordinates: [lng, lat],
+                },
+                $maxDistance: radius,
+            },
+        },
+    });
 };
 export const sendDeliveryCreatedEmail = async (pickup, dropoff, customerEmail) => {
     await transporter.sendMail({

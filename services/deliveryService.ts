@@ -13,7 +13,20 @@ interface CreateDeliveryDTO {
 }
 
 export const createDelivery = async (data: CreateDeliveryDTO): Promise<IDelivery> => {
-  return await Delivery.create(data);
+
+  const delivery = await Delivery.create({
+    ...data,
+        pickup: {
+      lat: data.pickup.lat,
+      lng: data.pickup.lng,
+    },
+    dropoff: {
+      lat: data.dropoff.lat,
+      lng: data.dropoff.lng,
+    },
+  });
+
+  return delivery;
 };
 
 export const getCustomerDeliveries = async (customerId: string): Promise<IDelivery[]> => {
@@ -24,6 +37,25 @@ export const getCustomerDeliveries = async (customerId: string): Promise<IDelive
   return await Delivery.find({ customer: customerId })
     .sort({ createdAt: -1 })
     .lean();
+};
+
+export const getNearbyDeliveries = async (
+  lat: number,
+  lng: number,
+  radius: number = 5000 // meters (5km)
+) => {
+  return await Delivery.find({
+    status: "pending",
+    pickup: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [lng, lat],
+        },
+        $maxDistance: radius,
+      },
+    },
+  });
 };
 
 export const sendDeliveryCreatedEmail = async (
