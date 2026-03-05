@@ -20,7 +20,7 @@ const deliverySchema = new Schema({
         },
         coordinates: {
             type: [Number], // [lng, lat]
-            required: true,
+            required: false,
         },
     },
     pickup: {
