@@ -1,7 +1,17 @@
 import Delivery from '../models/Delivery.js';
 import transporter from '../utils/mailer.js';
+import mongoose from 'mongoose';
 export const createDelivery = async (data) => {
     return await Delivery.create(data);
+};
+export const getCustomerDeliveries = async (customerId) => {
+    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+        throw new Error("Invalid customer ID");
+    }
+    // fetch all deliveries for the customer most recent first
+    return await Delivery.find({ customer: customerId })
+        .sort({ createdAt: -1 })
+        .lean();
 };
 export const sendDeliveryCreatedEmail = async (pickup, dropoff, customerEmail) => {
     await transporter.sendMail({

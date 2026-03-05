@@ -28,6 +28,19 @@ export const createDelivery = async (req, res) => {
         });
     }
 };
+export const getCustomerDeliveries = async (req, res) => {
+    try {
+        // here we check if value is array if not then take it as string 
+        const param = req.params.customerId;
+        const customerId = Array.isArray(param) ? param[0] : param;
+        const deliveries = await deliveryService.getCustomerDeliveries(customerId);
+        res.json(deliveries);
+    }
+    catch (err) {
+        console.error("failed to get customer deliveries:", err);
+        res.status(400).json({ message: err.message || "server error" });
+    }
+};
 // update delivery status
 export const updateStatus = async (req, res) => {
     try {

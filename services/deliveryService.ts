@@ -16,6 +16,16 @@ export const createDelivery = async (data: CreateDeliveryDTO): Promise<IDelivery
   return await Delivery.create(data);
 };
 
+export const getCustomerDeliveries = async (customerId: string): Promise<IDelivery[]> => {
+  if (!mongoose.Types.ObjectId.isValid(customerId)) {
+    throw new Error("Invalid customer ID");
+  }
+  // fetch all deliveries for the customer most recent first
+  return await Delivery.find({ customer: customerId })
+    .sort({ createdAt: -1 })
+    .lean();
+};
+
 export const sendDeliveryCreatedEmail = async (
     pickup: any,
     dropoff: any,

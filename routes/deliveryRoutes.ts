@@ -3,6 +3,7 @@ import * as controller from '../controllers/deliveryController.js';
 
 const router = express.Router();
 
+router.get("/customer/:customerId", controller.getCustomerDeliveries);
 router.post('/', controller.createDelivery);
 router.patch('/:id/status', controller.updateStatus);
 

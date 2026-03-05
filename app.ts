@@ -40,6 +40,7 @@ const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`, mongoose.connection.name);
+  // just checking if my backend cloud server recognizing my env
   console.log("EMAIL_USER:", process.env.EMAIL_USER);
   console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
 });
