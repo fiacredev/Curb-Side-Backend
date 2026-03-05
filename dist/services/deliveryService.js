@@ -49,11 +49,20 @@ export const sendDeliveryCreatedEmail = async (pickup, dropoff, customerEmail) =
 export const updateStatus = async (id, status) => {
     return await Delivery.findByIdAndUpdate(id, { status }, { new: true });
 };
-// Ai complex logic without using GEOJSONn in mongoDb to get nearest location
-export const getNearbyDeliveries = async (lat, lng, radiusMeters = 5000 // default 5km
+// Ai complex logic without using GEOJSONn in mongoDb to get nearest deliveries
+export const getNearbyDeliveries = async (lat, lng, radiusMeters = 5000 // default 5 km
 ) => {
-    const earthRadius = 6371000; // in meters
+    const earthRadius = 6371000; // meters
     return await Delivery.aggregate([
+        // Filter out documents without proper pickup coordinates first
+        {
+            $match: {
+                "pickup.lat": { $exists: true, $ne: null },
+                "pickup.lng": { $exists: true, $ne: null },
+                status: "pending",
+            },
+        },
+        // Calculate distance using Haversine formula
         {
             $addFields: {
                 distance: {
@@ -70,7 +79,7 @@ export const getNearbyDeliveries = async (lat, lng, radiusMeters = 5000 // defau
                                 {
                                     $acos: {
                                         $min: [
-                                            1,
+                                            1, // ensures domain error doesn't happen
                                             {
                                                 $add: [
                                                     { $multiply: [{ $sin: "$$lat1" }, { $sin: "$$lat2" }] },
@@ -92,7 +101,15 @@ export const getNearbyDeliveries = async (lat, lng, radiusMeters = 5000 // defau
                 },
             },
         },
-        { $match: { distance: { $lte: radiusMeters }, status: "pending" } },
-        { $sort: { distance: 1 } },
+        // Only return deliveries within radius
+        {
+            $match: {
+                distance: { $lte: radiusMeters },
+            },
+        },
+        // Sort nearest first
+        {
+            $sort: { distance: 1 },
+        },
     ]);
 };
