@@ -81,52 +81,72 @@ export const updateStatus = async (
   // Ai complex logic without using GEOJSONn in mongoDb to get nearest deliveries
   
   export const getNearbyDeliveries = async (
-    lat: number,
-    lng: number,
-    radiusMeters: number = 5000 // default 5km
-  ) => {
-    const earthRadius = 6371000; // in meters
-  
-    return await Delivery.aggregate([
-      {
-        $addFields: {
-          distance: {
-            $let: {
-              vars: {
-                lat1: { $toRadians: "$pickup.lat" },
-                lng1: { $toRadians: "$pickup.lng" },
-                lat2: { $toRadians: lat },
-                lng2: { $toRadians: lng },
-              },
-              in: {
-                $multiply: [
-                  earthRadius,
-                  {
-                    $acos: {
-                      $min: [
-                        1,
-                        {
-                          $add: [
-                            { $multiply: [{ $sin: "$$lat1" }, { $sin: "$$lat2" }] },
-                            {
-                              $multiply: [
-                                { $cos: "$$lat1" },
-                                { $cos: "$$lat2" },
-                                { $cos: { $subtract: ["$$lng2", "$$lng1"] } },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
+  lat: number,
+  lng: number,
+  radiusMeters: number = 5000 // default 5 km
+) => {
+  const earthRadius = 6371000; // meters
+
+  return await Delivery.aggregate([
+    // Filter out documents without proper pickup coordinates first
+    {
+      $match: {
+        "pickup.lat": { $exists: true, $ne: null },
+        "pickup.lng": { $exists: true, $ne: null },
+        status: "pending",
+      },
+    },
+
+    // Calculate distance using Haversine formula
+    {
+      $addFields: {
+        distance: {
+          $let: {
+            vars: {
+              lat1: { $toRadians: "$pickup.lat" },
+              lng1: { $toRadians: "$pickup.lng" },
+              lat2: { $toRadians: lat },
+              lng2: { $toRadians: lng },
+            },
+            in: {
+              $multiply: [
+                earthRadius,
+                {
+                  $acos: {
+                    $min: [
+                      1, // ensures domain error doesn't happen
+                      {
+                        $add: [
+                          { $multiply: [{ $sin: "$$lat1" }, { $sin: "$$lat2" }] },
+                          {
+                            $multiply: [
+                              { $cos: "$$lat1" },
+                              { $cos: "$$lat2" },
+                              { $cos: { $subtract: ["$$lng2", "$$lng1"] } },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
                   },
-                ],
-              },
+                },
+              ],
             },
           },
         },
       },
-      { $match: { distance: { $lte: radiusMeters }, status: "pending" } },
-      { $sort: { distance: 1 } },
-    ]);
-  };
+    },
+
+    // Only return deliveries within radius
+    {
+      $match: {
+        distance: { $lte: radiusMeters },
+      },
+    },
+
+    // Sort nearest first
+    {
+      $sort: { distance: 1 },
+    },
+  ]);
+};
