@@ -53,7 +53,7 @@ const deliverySchema: Schema<IDelivery> = new Schema(
       },
       coordinates: {
         type: [Number], // [lng, lat]
-        required: true,
+        required: false,
       },
     },
 
