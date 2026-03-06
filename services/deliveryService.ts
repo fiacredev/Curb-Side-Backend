@@ -125,72 +125,100 @@ export const updateStatus = async (
 
 // AI complex logic for calculating distance and so on...
 
+// export const getNearbyDeliveries = async (
+//   lat: number,
+//   lng: number,
+//   radiusMeters: number = 20000
+// ) => {
+//   try {
+//     const deliveries = await Delivery.find({ status: "pending" }).lean();
+
+//     console.log("Total pending deliveries:", deliveries.length);
+//     console.log("Driver location:", lat, lng);
+
+//     const earthRadius = 6371000;
+
+//     const toRad = (v: number) => (v * Math.PI) / 180;
+
+//     const haversineDistance = (
+//       lat1: number,
+//       lng1: number,
+//       lat2: number,
+//       lng2: number
+//     ) => {
+//       const dLat = toRad(lat2 - lat1);
+//       const dLng = toRad(lng2 - lng1);
+
+//       const a =
+//         Math.sin(dLat / 2) ** 2 +
+//         Math.cos(toRad(lat1)) *
+//           Math.cos(toRad(lat2)) *
+//           Math.sin(dLng / 2) ** 2;
+
+//       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+//       return earthRadius * c;
+//     };
+
+//     const nearby = deliveries.filter((delivery) => {
+//       if (!delivery.pickup || delivery.pickup.lat == null || delivery.pickup.lng == null) {
+//         console.log("Skipping delivery without pickup:", delivery._id);
+//         return false;
+//       }
+
+//       const distance = haversineDistance(
+//         lat,
+//         lng,
+//         delivery.pickup.lat,
+//         delivery.pickup.lng
+//       );
+
+//       console.log(
+//         "Delivery:",
+//         delivery._id,
+//         "Pickup:",
+//         delivery.pickup.lat,
+//         delivery.pickup.lng,
+//         "Distance:",
+//         distance
+//       );
+
+//       return distance <= radiusMeters;
+//     });
+
+//     console.log("Nearby deliveries found:", nearby.length);
+
+//     return nearby;
+//   } catch (err) {
+//     console.error("Error in getNearbyDeliveries:", err);
+//     throw err;
+//   }
+// };
+
 export const getNearbyDeliveries = async (
   lat: number,
   lng: number,
-  radiusMeters: number = 20000
-) => {
+  radiusMeters: number = 5000
+): Promise<IDelivery[]> => {
   try {
-    const deliveries = await Delivery.find({ status: "pending" }).lean();
-
-    console.log("Total pending deliveries:", deliveries.length);
-    console.log("Driver location:", lat, lng);
-
-    const earthRadius = 6371000;
-
-    const toRad = (v: number) => (v * Math.PI) / 180;
-
-    const haversineDistance = (
-      lat1: number,
-      lng1: number,
-      lat2: number,
-      lng2: number
-    ) => {
-      const dLat = toRad(lat2 - lat1);
-      const dLng = toRad(lng2 - lng1);
-
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) *
-          Math.cos(toRad(lat2)) *
-          Math.sin(dLng / 2) ** 2;
-
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-      return earthRadius * c;
-    };
-
-    const nearby = deliveries.filter((delivery) => {
-      if (!delivery.pickup || delivery.pickup.lat == null || delivery.pickup.lng == null) {
-        console.log("Skipping delivery without pickup:", delivery._id);
-        return false;
-      }
-
-      const distance = haversineDistance(
-        lat,
-        lng,
-        delivery.pickup.lat,
-        delivery.pickup.lng
-      );
-
-      console.log(
-        "Delivery:",
-        delivery._id,
-        "Pickup:",
-        delivery.pickup.lat,
-        delivery.pickup.lng,
-        "Distance:",
-        distance
-      );
-
-      return distance <= radiusMeters;
-    });
+    // Use MongoDB $near query on pickupLocation (GeoJSON)
+    const nearby = await Delivery.find({
+      status: "pending",
+      pickupLocation: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat], // GeoJSON expects [lng, lat]
+          },
+          $maxDistance: radiusMeters,
+        },
+      },
+    }).lean();
 
     console.log("Nearby deliveries found:", nearby.length);
-
     return nearby;
   } catch (err) {
-    console.error("Error in getNearbyDeliveries:", err);
+    console.error("Error fetching nearby deliveries:", err);
     throw err;
   }
 };

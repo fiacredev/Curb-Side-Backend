@@ -86,6 +86,8 @@ export const getNearbyDeliveries = async (req: Request, res: Response) => {
   }
 };
 
+
+
 // update delivery status
 export const updateStatus = async (
   req: Request<{ id: string }, {}, { status: 'pending' | 'accepted' | 'in_progress' | 'completed' }>,
