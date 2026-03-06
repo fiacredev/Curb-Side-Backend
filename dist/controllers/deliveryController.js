@@ -47,7 +47,7 @@ export const getNearbyDeliveries = async (req, res) => {
         if (!lat || !lng) {
             return res.status(400).json({ message: "lat and lng required" });
         }
-        const nearby = await deliveryService.getNearbyDeliveries(Number(lat), Number(lng), 5000 // radius in meters
+        const nearby = await deliveryService.getNearbyDeliveries(Number(lat), Number(lng), 20000 // radius in meters
         );
         res.json(nearby);
     }

@@ -76,7 +76,7 @@ export const getNearbyDeliveries = async (req: Request, res: Response) => {
     const nearby = await deliveryService.getNearbyDeliveries(
       Number(lat),
       Number(lng),
-      5000 // radius in meters
+      20000 // radius in meters
     );
 
     res.json(nearby);

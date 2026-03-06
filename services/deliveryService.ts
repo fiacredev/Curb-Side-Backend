@@ -125,11 +125,10 @@ export const updateStatus = async (
 
 // AI complex logic for calculating distance and so on...
 
-
 export const getNearbyDeliveries = async (
   lat: number,
   lng: number,
-  radiusMeters: number = 5000
+  radiusMeters: number = 20000
 ) => {
   try {
     const deliveries = await Delivery.find({ status: "pending" }).lean();
@@ -162,6 +161,11 @@ export const getNearbyDeliveries = async (
     };
 
     const nearby = deliveries.filter((delivery) => {
+      if (!delivery.pickup || delivery.pickup.lat == null || delivery.pickup.lng == null) {
+        console.log("Skipping delivery without pickup:", delivery._id);
+        return false;
+      }
+
       const distance = haversineDistance(
         lat,
         lng,
@@ -169,8 +173,20 @@ export const getNearbyDeliveries = async (
         delivery.pickup.lng
       );
 
+      console.log(
+        "Delivery:",
+        delivery._id,
+        "Pickup:",
+        delivery.pickup.lat,
+        delivery.pickup.lng,
+        "Distance:",
+        distance
+      );
+
       return distance <= radiusMeters;
     });
+
+    console.log("Nearby deliveries found:", nearby.length);
 
     return nearby;
   } catch (err) {
