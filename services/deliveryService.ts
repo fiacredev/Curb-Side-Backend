@@ -134,6 +134,9 @@ export const getNearbyDeliveries = async (
   try {
     const deliveries = await Delivery.find({ status: "pending" }).lean();
 
+    console.log("Total pending deliveries:", deliveries.length);
+    console.log("Driver location:", lat, lng);
+
     const earthRadius = 6371000;
 
     const toRad = (v: number) => (v * Math.PI) / 180;

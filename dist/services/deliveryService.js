@@ -90,6 +90,8 @@ export const updateStatus = async (id, status) => {
 export const getNearbyDeliveries = async (lat, lng, radiusMeters = 5000) => {
     try {
         const deliveries = await Delivery.find({ status: "pending" }).lean();
+        console.log("Total pending deliveries:", deliveries.length);
+        console.log("Driver location:", lat, lng);
         const earthRadius = 6371000;
         const toRad = (v) => (v * Math.PI) / 180;
         const haversineDistance = (lat1, lng1, lat2, lng2) => {
