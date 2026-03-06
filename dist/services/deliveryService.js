@@ -50,35 +50,66 @@ export const updateStatus = async (id, status) => {
     return await Delivery.findByIdAndUpdate(id, { status }, { new: true });
 };
 // Ai complex logic without using GEOJSONn in mongoDb to get nearest deliveries
+// export const getNearbyDeliveries = async (
+//   lat: number,
+//   lng: number,
+//   radiusMeters: number = 5000
+// ) => {
+//   try {
+//     // fetch all pending deliveries
+//     const deliveries = await Delivery.find({ status: "pending" }).lean();
+//     const earthRadius = 6371000; // meters
+//     const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+//       const toRad = (v: number) => (v * Math.PI) / 180;
+//       const dLat = toRad(lat2 - lat1);
+//       const dLng = toRad(lng2 - lng1);
+//       const a =
+//         Math.sin(dLat / 2) ** 2 +
+//         Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+//       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//       return earthRadius * c;
+//     };
+//     // map deliveries with distance
+//     const nearby = deliveries
+//       .map((d: any) => {
+//         if (d.pickup && d.pickup.lat != null && d.pickup.lng != null) {
+//           const distance = haversineDistance(lat, lng, d.pickup.lat, d.pickup.lng);
+//           return { ...d, distance };
+//         }
+//         return null;
+//       })
+//       .filter((d): d is any => d !== null && d.distance <= radiusMeters)
+//       .sort((a, b) => a.distance - b.distance);
+//     return nearby;
+//   } catch (err: any) {
+//     console.error("getNearbyDeliveries failed:", err);
+//     throw err;
+//   }
+// };
+// AI complex logic for calculating distance and so on...
 export const getNearbyDeliveries = async (lat, lng, radiusMeters = 5000) => {
     try {
-        // fetch all pending deliveries
         const deliveries = await Delivery.find({ status: "pending" }).lean();
-        const earthRadius = 6371000; // meters
+        const earthRadius = 6371000;
+        const toRad = (v) => (v * Math.PI) / 180;
         const haversineDistance = (lat1, lng1, lat2, lng2) => {
-            const toRad = (v) => (v * Math.PI) / 180;
             const dLat = toRad(lat2 - lat1);
             const dLng = toRad(lng2 - lng1);
             const a = Math.sin(dLat / 2) ** 2 +
-                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+                Math.cos(toRad(lat1)) *
+                    Math.cos(toRad(lat2)) *
+                    Math.sin(dLng / 2) ** 2;
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             return earthRadius * c;
         };
-        // map deliveries with distance
-        const nearby = deliveries
-            .map((d) => {
-            if (d.pickup && d.pickup.lat != null && d.pickup.lng != null) {
-                const distance = haversineDistance(lat, lng, d.pickup.lat, d.pickup.lng);
-                return { ...d, distance };
-            }
-            return null;
-        })
-            .filter((d) => d !== null && d.distance <= radiusMeters)
-            .sort((a, b) => a.distance - b.distance);
+        const nearby = deliveries.filter((delivery) => {
+            const distance = haversineDistance(lat, lng, delivery.pickup.lat, delivery.pickup.lng);
+            return distance <= radiusMeters;
+        });
         return nearby;
     }
     catch (err) {
-        console.error("getNearbyDeliveries failed:", err);
+        console.error("Error in getNearbyDeliveries:", err);
         throw err;
     }
 };
