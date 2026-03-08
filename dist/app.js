@@ -8,6 +8,7 @@ import { connectDB } from './config/db.js';
 import { registerDriverSockets } from './sockets/driverSocke.js';
 import driverRoutes from './routes/driverRoutes.js';
 import deliveryRoutes from './routes/deliveryRoutes.js';
+import authRoutes from "./routes/auth.routes.js";
 dotenv.config();
 const app = express();
 await connectDB();
@@ -16,6 +17,7 @@ app.use(express.json());
 // api end points about drivers and deleiveries
 app.use('/drivers', driverRoutes);
 app.use('/deliveries', deliveryRoutes);
+app.use("/api/auth", authRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: { origin: '*' }

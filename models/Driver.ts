@@ -3,6 +3,7 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 export interface IDriver extends Document {
   name: string;
   email: string;
+  password:string;
   isAvailable: boolean;
   currentLocation?: {
     lat: number;
@@ -28,6 +29,8 @@ const driverSchema: Schema<IDriver> = new Schema(
       required: true,
       unique: true,
     },
+    
+    password:{type: String, required: true, unique: true},
 
     isAvailable: {
       type: Boolean,

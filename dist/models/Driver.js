@@ -9,6 +9,7 @@ const driverSchema = new Schema({
         required: true,
         unique: true,
     },
+    password: { type: String, required: true, unique: true },
     isAvailable: {
         type: Boolean,
         default: false,
