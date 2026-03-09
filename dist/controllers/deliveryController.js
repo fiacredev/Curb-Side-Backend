@@ -59,12 +59,12 @@ export const getNearbyDeliveries = async (req, res) => {
 // update delivery status
 export const updateStatus = async (req, res) => {
     try {
-        const driverId = req.user?.id;
+        const { status, driverId } = req.body;
         if (!driverId) {
             res.status(401).json({ message: "Unauthorized" });
             return;
         }
-        const delivery = await deliveryService.updateStatus(req.params.id, req.body.status, driverId);
+        const delivery = await deliveryService.updateStatus(req.params.id, status, driverId);
         res.json(delivery);
     }
     catch (err) {
