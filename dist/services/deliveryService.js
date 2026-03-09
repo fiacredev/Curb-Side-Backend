@@ -46,8 +46,15 @@ export const sendDeliveryCreatedEmail = async (pickup, dropoff, customerEmail) =
       `,
     });
 };
-export const updateStatus = async (id, status) => {
-    return await Delivery.findByIdAndUpdate(id, { status }, { new: true });
+export const updateStatus = async (id, status, driverId) => {
+    const delivery = await Delivery.findById(id);
+    if (!delivery) {
+        throw new Error("Delivery not found");
+    }
+    delivery.status = status;
+    delivery.driver = new mongoose.Types.ObjectId(driverId);
+    await delivery.save();
+    return delivery;
 };
 // Ai complex logic without using GEOJSONn in mongoDb to get nearest deliveries
 // export const getNearbyDeliveries = async (

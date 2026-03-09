@@ -94,13 +94,21 @@ export const updateStatus = async (
   res: Response
 ): Promise<void> => {
   try {
-    const delivery = await deliveryService.updateStatus(req.params.id, req.body.status);
+
+     const driverId = (req as any).user?.id;
+
+     if (!driverId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const delivery = await deliveryService.updateStatus(req.params.id, req.body.status, driverId);
     res.json(delivery);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
-};
+}; 
 
 // export const createTestDriver = async (req, res) => {
 //   const driver = await Driver.create({

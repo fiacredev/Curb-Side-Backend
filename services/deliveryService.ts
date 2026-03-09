@@ -71,9 +71,22 @@ export const sendDeliveryCreatedEmail = async (
 
 export const updateStatus = async (
   id: string,
-  status: 'pending' | 'accepted' | 'in_progress' | 'completed'
+  status: 'pending' | 'accepted' | 'in_progress' | 'completed',
+  driverId: string
 ): Promise<IDelivery | null> => {
-  return await Delivery.findByIdAndUpdate(id, { status }, { new: true });
+  
+  const delivery = await Delivery.findById(id);
+
+  if (!delivery) {
+    throw new Error("Delivery not found");
+  }
+
+  delivery.status = status;
+  delivery.driver = new mongoose.Types.ObjectId(driverId);
+
+  await delivery.save();
+
+  return delivery;
 };
 
 
