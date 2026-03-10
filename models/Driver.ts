@@ -34,7 +34,7 @@ const driverSchema: Schema<IDriver> = new Schema(
 
     isAvailable: {
       type: Boolean,
-      default: false,
+      default: true,
     },
 
     // OLD format (optional)
